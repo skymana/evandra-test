@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evandra - Testeur du moteur de recommandation v1.0.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+        }
+
+        .form-section h3 {
+            color: #34495e;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #ecf0f1;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-section.collapsed .form-content {
+            display: none;
+        }
+
+        .form-section .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .form-section.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .radio-group, .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .radio-option, .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .radio-option:hover, .checkbox-option:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .radio-option.selected, .checkbox-option.selected {
+            border-color: #3498db;
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .radio-option input, .checkbox-option input {
+            margin: 0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            color: #7f8c8d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn:disabled:hover {
+            background: #bdc3c7;
+            transform: none;
+        }
+
+        .file-input {
+            margin: 15px 0;
+        }
+
+        .file-input input {
+            padding: 10px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            width: 100%;
+            background: #f8f9fa;
+        }
+
+        .results-section {
+            margin-top: 20px;
+        }
+
+        .results-section h3 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+
+        .scores-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        .scores-table th,
+        .scores-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .scores-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .recommended-pack {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .recommended-pack h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .ex-aequo {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .contributions {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .contributions h4 {
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+
+        .contribution-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ffeaa7;
+            margin: 10px 0;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #c3e6cb;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 10px;
+            }
+            
+            .radio-group, .checkbox-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌿 Evandra - Testeur du moteur de recommandation v1.0.0</h1>
+            <p>Simulez un diagnostic capillaire et testez les recommandations de packs</p>
+        </div>
+
+        <!-- Colonne gauche : Formulaire -->
+        <div class="card">
+            <!-- À propos du moteur de recommandation -->
+            <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3498db;">
+                <h3>🌿 À propos du moteur de recommandation</h3>
+                <p>Ce testeur utilise la matrice officielle d'Evandra (v1.0.0) pour simuler le processus de recommandation de packs capillaires personnalisés.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div>
+                        <h4>📋 Comment ça fonctionne :</h4>
+                        <ul style="font-size: 14px;">
+                            <li><strong>Texture & Volume :</strong> Base du profil</li>
+                            <li><strong>Problèmes :</strong> Cuir chevelu, longueurs</li>
+                            <li><strong>Objectifs :</strong> Vos besoins</li>
+                            <li><strong>Scoring :</strong> Chaque réponse compte</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>🎯 15 Packs disponibles :</h4>
+                        <ul style="font-size: 14px;">
+                            <li><strong>Afro (P001-P005)</strong></li>
+                            <li><strong>Frisés (P006-P010)</strong></li>
+                            <li><strong>Bouclés/Ondulés (P011-P015)</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <h2>Diagnostic Capillaire</h2>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="resetForm()">Réinitialiser</button>
+                <button class="btn btn-warning" onclick="generateRandomResponses()">Réponses aléatoires</button>
+            </div>
+
+            <div class="file-input">
+                <label>Importer MatrixSource (CSV) :</label>
+                <input type="file" id="csvFile" accept=".csv" onchange="handleFileUpload(event)">
+                <small>L'application utilise déjà la matrice complète d'Evandra (43 règles intégrées, conforme au CSV officiel v1.0.0). L'import CSV permet de tester avec d'autres configurations.</small>
+            </div>
+
+            <form id="diagnosticForm">
+                <!-- Section 1: Texture & Volume -->
+                <div class="form-section">
+                    <h3 onclick="toggleSection(this)">
+                        Texture & Volume
+                        <span class="toggle-icon">▼</span>
+                    </h3>
+                    <div class="form-content">
+                        <div class="form-group">
+                            <label>Quelle est la texture de tes cheveux ?</label>
+                            <div class="radio-group">
+                                <div class="radio-option" onclick="selectRadio('texture', 'ondules')">
+                                    <input type="radio" name="texture" value="ondules" id="texture-ondules">
+                                    <span>Ondulés</span>
+                                </div>
+                                <div class="radio-option" onclick="selectRadio('texture', 'boucles')">
+                                    <input type="radio" name="texture" value="boucles" id="texture-boucles">
+                                    <span>Bouclés</span>
+                                </div>
+                                <div class="radio-option" onclick="selectRadio('texture', 'frises')">
+                                    <input type="radio" name="texture" value="frises" id="texture-frises">
+                                    <span>Frisés</span>
+                                </div>
+                                <div class="radio-option" onclick="selectRadio('texture', 'afro')">
+                                    <input type="radio" name="texture" value="afro" id="texture-afro">
+                                    <span>Afro</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Dirais-tu que tu as...</label>
+                            <div class="radio-group">
+                                <div class="radio-option" onclick="selectRadio('volume', 'peu')">
+                                    <input type="radio" name="volume" value="peu" id="volume-peu">
+                                    <span>Peu de cheveux</span>
+                                </div>
+                                <div class="radio-option" onclick="selectRadio('volume', 'moyen')">
+                                    <input type="radio" name="volume" value="moyen" id="volume-moyen">
+                                    <span>Une quantité satisfaisante de cheveux</span>
+                                </div>
+                                <div class="radio-option" onclick="selectRadio('volume', 'beaucoup')">
+                                    <input type="radio" name="volume" value="beaucoup" id="volume-beaucoup">
+                                    <span>Beaucoup de cheveux</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Cuir chevelu -->
+                <div class="form-section">
+                    <h3 onclick="toggleSection(this)">
+                        Cuir chevelu
+                        <span class="toggle-icon">▼</span>
+                    </h3>
+                    <div class="form-content">
+                        <div class="form-group">
+                            <label>As-tu des problèmes avec ton cuir chevelu ? (Sélection multiple possible)</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-option" onclick="toggleCheckbox('cuir-sec')">
+                                    <input type="checkbox" id="cuir-sec" value="sec">
+                                    <span>Sec</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('cuir-gras')">
+                                    <input type="checkbox" id="cuir-gras" value="gras">
+                                    <span>Gras</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('cuir-sensible')">
+                                    <input type="checkbox" id="cuir-sensible" value="sensible">
+                                    <span>Sensible</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('cuir-pellicules')">
+                                    <input type="checkbox" id="cuir-pellicules" value="pellicules">
+                                    <span>Pellicules</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('cuir-demangeaisons')">
+                                    <input type="checkbox" id="cuir-demangeaisons" value="demangeaisons">
+                                    <span>Démangeaisons</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('cuir-chute')">
+                                    <input type="checkbox" id="cuir-chute" value="chute">
+                                    <span>Chute de cheveux</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('cuir-tempes')">
+                                    <input type="checkbox" id="cuir-tempes" value="tempes">
+                                    <span>Tempes dégarnies</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('cuir-pelades')">
+                                    <input type="checkbox" id="cuir-pelades" value="pelades">
+                                    <span>Pelades</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Longueurs -->
+                <div class="form-section">
+                    <h3 onclick="toggleSection(this)">
+                        Longueurs
+                        <span class="toggle-icon">▼</span>
+                    </h3>
+                    <div class="form-content">
+                        <div class="form-group">
+                            <label>As-tu des problèmes avec tes longueurs ? (Sélection multiple possible)</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-option" onclick="toggleCheckbox('long-terne')">
+                                    <input type="checkbox" id="long-terne" value="terne">
+                                    <span>Terne (manque de brillance)</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('long-sec')">
+                                    <input type="checkbox" id="long-sec" value="sec">
+                                    <span>Très sec</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('long-cassantes')">
+                                    <input type="checkbox" id="long-cassantes" value="cassantes">
+                                    <span>Les pointes cassantes</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('long-fourchus')">
+                                    <input type="checkbox" id="long-fourchus" value="fourchus">
+                                    <span>Cheveux fourchus</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('long-definition')">
+                                    <input type="checkbox" id="long-definition" value="definition">
+                                    <span>Manque de définition</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Chaleur -->
+                <div class="form-section">
+                    <h3 onclick="toggleSection(this)">
+                        Chaleur
+                        <span class="toggle-icon">▼</span>
+                    </h3>
+                    <div class="form-content">
+                        <div class="form-group">
+                            <label>As-tu souvent recours à la chaleur ?</label>
+                            <div class="radio-group">
+                                <div class="radio-option" onclick="selectRadio('chaleur', 'jamais')">
+                                    <input type="radio" name="chaleur" value="jamais" id="chaleur-jamais">
+                                    <span>Jamais ou rarement (quelques fois par an)</span>
+                                </div>
+                                <div class="radio-option" onclick="selectRadio('chaleur', 'parfois')">
+                                    <input type="radio" name="chaleur" value="parfois" id="chaleur-parfois">
+                                    <span>De temps en temps (tous les mois ou presque)</span>
+                                </div>
+                                <div class="radio-option" onclick="selectRadio('chaleur', 'souvent')">
+                                    <input type="radio" name="chaleur" value="souvent" id="chaleur-souvent">
+                                    <span>Oui, très souvent (chaque semaine)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 5: Traitements -->
+                <div class="form-section">
+                    <h3 onclick="toggleSection(this)">
+                        Traitements
+                        <span class="toggle-icon">▼</span>
+                    </h3>
+                    <div class="form-content">
+                        <div class="form-group">
+                            <label>As-tu les cheveux... (Sélection multiple possible)</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-option" onclick="toggleCheckbox('trait-colores')">
+                                    <input type="checkbox" id="trait-colores" value="colores">
+                                    <span>Colorés</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('trait-meches')">
+                                    <input type="checkbox" id="trait-meches" value="meches">
+                                    <span>Avec des mèches</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('trait-defrises')">
+                                    <input type="checkbox" id="trait-defrises" value="defrises">
+                                    <span>Défrisés</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('trait-permanente')">
+                                    <input type="checkbox" id="trait-permanente" value="permanente">
+                                    <span>Permanente</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 6: Objectifs -->
+                <div class="form-section">
+                    <h3 onclick="toggleSection(this)">
+                        Objectifs
+                        <span class="toggle-icon">▼</span>
+                    </h3>
+                    <div class="form-content">
+                        <div class="form-group">
+                            <label>Quels sont tes objectifs ? (Sélection multiple possible)</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-option" onclick="toggleCheckbox('obj-pousser')">
+                                    <input type="checkbox" id="obj-pousser" value="pousser">
+                                    <span>Faire pousser</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('obj-fortifier')">
+                                    <input type="checkbox" id="obj-fortifier" value="fortifier">
+                                    <span>Fortifier et densifier</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('obj-retenir')">
+                                    <input type="checkbox" id="obj-retenir" value="retenir">
+                                    <span>Retenir mes longueurs</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('obj-cesser')">
+                                    <input type="checkbox" id="obj-cesser" value="cesser">
+                                    <span>Cesser la chute de cheveux</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('obj-definir')">
+                                    <input type="checkbox" id="obj-definir" value="definir">
+                                    <span>Définir mes boucles</span>
+                                </div>
+                                <div class="checkbox-option" onclick="toggleCheckbox('obj-brillance')">
+                                    <input type="checkbox" id="obj-brillance" value="brillance">
+                                    <span>Augmenter la brillance</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Bouton Calculer placé en bas -->
+            <div class="button-group" style="margin-top: 30px; border-top: 2px solid #ecf0f1; padding-top: 20px;">
+                <button class="btn btn-primary" id="calculateBtn" onclick="calculateRecommendation()" disabled>
+                    Calculer la recommandation
+                </button>
+                <div id="validationMessage" class="warning" style="display: none; margin-top: 10px;">
+                    Veuillez répondre à au moins une option pour chaque question obligatoire (Texture, Volume, Cuir chevelu, Longueurs, Chaleur, Traitements, Objectifs).
+                </div>
+            </div>
+
+            <!-- Résultats de la recommandation -->
+            <div id="results" style="margin-top: 20px;">
+                <p>Complétez le diagnostic et cliquez sur "Calculer la recommandation" pour voir les résultats.</p>
+            </div>
+
+            <!-- Bouton Export JSON placé après les résultats -->
+            <div class="button-group" style="margin-top: 20px; border-top: 2px solid #ecf0f1; padding-top: 20px;">
+                <button class="btn btn-success" onclick="exportResponses()">Exporter résultats complets (JSON)</button>
+                <label>
+                    <input type="checkbox" id="useLocalStorage" onchange="toggleLocalStorage()" checked>
+                    Mémoriser les réponses
+                </label>
+            </div>
+        </div>
+
+        <!-- Colonne droite : Aide et conseils -->
+        <div class="card">
+            <h2>💡 Conseils pour le diagnostic</h2>
+            <div>
+                <div style="margin-bottom: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px;">
+                    <h4>✨ Pour des résultats optimaux :</h4>
+                    <ul style="margin-bottom: 0;">
+                        <li>Répondez honnêtement à toutes les questions</li>
+                        <li>Sélectionnez tous les problèmes qui vous concernent</li>
+                        <li>N'hésitez pas à choisir plusieurs objectifs</li>
+                        <li>Utilisez "Réponses aléatoires" pour tester</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 20px; padding: 15px; background: #f0f8ff; border-radius: 8px;">
+                    <h4>🔍 Fonctionnalités :</h4>
+                    <ul style="margin-bottom: 0;">
+                        <li><strong>Sauvegarde automatique</strong> de vos réponses</li>
+                        <li><strong>Export JSON</strong> pour analyse</li>
+                        <li><strong>Import CSV</strong> pour tester d'autres matrices</li>
+                        <li><strong>Scoring détaillé</strong> avec contributions</li>
+                    </ul>
+                </div>
+
+                <div style="padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffeaa7;">
+                    <h4>⚙️ Outil de développement</h4>
+                    <p style="margin-bottom: 0; font-size: 14px;">
+                        Cet outil permet de tester et valider la logique du moteur de recommandation Evandra. 
+                        Les résultats sont calculés selon la matrice officielle v1.0.0.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrice complète des règles Evandra (43 règles basées sur le CSV officiel v1.0.0)
+        // Synchronisé avec Evandra_Matrix_with_Scoring_v1.0.0.csv - Source de vérité officielle
+        // Structure: code, questionLabel, response, responseLabel, visibleUX, isUsed, P001-P015
+        let matrixData = [
+            // Q01 - Combinaisons Texture + Volume (selon spécifications §3.3)
+            {code: 'Q01R01', questionLabel: 'Quelle est la texture de tes cheveux ? + Dirais-tu que tu as…', response: 'Ondulés + Beaucoup de cheveux', responseLabel: 'qTextureOndules_qVolumeBeaucoup', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 1, P012: 1, P013: 1, P014: 1, P015: 1},
+            {code: 'Q01R02', questionLabel: 'Quelle est la texture de tes cheveux ? + Dirais-tu que tu as…', response: 'Ondulés + Une quantité satisfaisante de cheveux', responseLabel: 'qTextureOndules_qVolumeMoyen', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 1, P012: 1, P013: 1, P014: 1, P015: 1},
+            {code: 'Q01R03', questionLabel: 'Quelle est la texture de tes cheveux ? + Dirais-tu que tu as…', response: 'Ondulés + Peu de cheveux', responseLabel: 'qTextureOndules_qVolumePeu', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 1, P012: 1, P013: 1, P014: 1, P015: 1},
+            {code: 'Q01R04', questionLabel: 'Quelle est la texture de tes cheveux ? + Dirais-tu que tu as…', response: 'Bouclés + Beaucoup de cheveux', responseLabel: 'qTextureBoucles_qVolumeBeaucoup', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 1, P007: 1, P008: 1, P009: 1, P010: 1, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q01R05', questionLabel: 'Quelle est la texture de tes cheveux ? + Dirais-tu que tu as…', response: 'Bouclés + Une quantité satisfaisante de cheveux', responseLabel: 'qTextureBoucles_qVolumeMoyen', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 1, P012: 1, P013: 1, P014: 1, P015: 1},
+            {code: 'Q01R06', questionLabel: 'Quelle est la texture de tes cheveux ? + Dirais-tu que tu as…', response: 'Bouclés + Peu de cheveux', responseLabel: 'qTextureBoucles_qVolumePeu', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 1, P012: 1, P013: 1, P014: 1, P015: 1},
+            {code: 'Q01R07', questionLabel: 'Quelle est la texture de tes cheveux ? + Dirais-tu que tu as…', response: 'Frisés + Beaucoup de cheveux', responseLabel: 'qTextureFrises_qVolumeBeaucoup', visibleUX: 1, isUsed: 1, P001: 1, P002: 1, P003: 1, P004: 1, P005: 1, P006: 1, P007: 1, P008: 1, P009: 1, P010: 1, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q01R08', questionLabel: 'Quelle est la texture de tes cheveux ? + Dirais-tu que tu as…', response: 'Frisés + Une quantité satisfaisante de cheveux', responseLabel: 'qTextureFrises_qVolumeMoyen', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 1, P007: 1, P008: 1, P009: 1, P010: 1, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q01R09', questionLabel: 'Quelle est la texture de tes cheveux ? + Dirais-tu que tu as…', response: 'Frisés + Peu de cheveux', responseLabel: 'qTextureFrises_qVolumePeu', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 1, P007: 1, P008: 1, P009: 1, P010: 1, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q01R10', questionLabel: 'Quelle est la texture de tes cheveux ? + Dirais-tu que tu as…', response: 'Afro + Beaucoup de cheveux', responseLabel: 'qTextureAfro_qVolumeBeaucoup', visibleUX: 1, isUsed: 1, P001: 1, P002: 1, P003: 1, P004: 1, P005: 1, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q01R11', questionLabel: 'Quelle est la texture de tes cheveux ? + Dirais-tu que tu as…', response: 'Afro + Une quantité satisfaisante de cheveux', responseLabel: 'qTextureAfro_qVolumeMoyen', visibleUX: 1, isUsed: 1, P001: 1, P002: 1, P003: 1, P004: 1, P005: 1, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q01R12', questionLabel: 'Quelle est la texture de tes cheveux ? + Dirais-tu que tu as…', response: 'Afro + Peu de cheveux', responseLabel: 'qTextureAfro_qVolumePeu', visibleUX: 1, isUsed: 1, P001: 1, P002: 1, P003: 1, P004: 1, P005: 1, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            
+            // Q02 - Cuir chevelu
+            {code: 'Q02R01', questionLabel: 'As-tu des problèmes avec ton cuir chevelu ?', response: 'Sec', responseLabel: 'qCuirChevelusec', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 1, P004: 0, P005: 0, P006: 0, P007: 0, P008: 1, P009: 0, P010: 0, P011: 0, P012: 0, P013: 1, P014: 0, P015: 0},
+            {code: 'Q02R02', questionLabel: 'As-tu des problèmes avec ton cuir chevelu ?', response: 'Sensible', responseLabel: 'qCuirChevelusensible', visibleUX: 1, isUsed: 1, P001: 0, P002: 1, P003: 0, P004: 0, P005: 0, P006: 0, P007: 1, P008: 0, P009: 0, P010: 0, P011: 0, P012: 1, P013: 0, P014: 0, P015: 0},
+            {code: 'Q02R03', questionLabel: 'As-tu des problèmes avec ton cuir chevelu ?', response: 'Pellicules', responseLabel: 'qCuirChevelupellicule', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 0, P005: 1, P006: 0, P007: 0, P008: 0, P009: 0, P010: 1, P011: 0, P012: 0, P013: 0, P014: 0, P015: 1},
+            {code: 'Q02R04', questionLabel: 'As-tu des problèmes avec ton cuir chevelu ?', response: 'Démangeaisons', responseLabel: 'qCuirCheveludemangeisons', visibleUX: 1, isUsed: 1, P001: 0, P002: 1, P003: 0, P004: 0, P005: 1, P006: 0, P007: 1, P008: 0, P009: 0, P010: 1, P011: 0, P012: 1, P013: 0, P014: 0, P015: 1},
+            {code: 'Q02R05', questionLabel: 'As-tu des problèmes avec ton cuir chevelu ?', response: 'Gras', responseLabel: 'qCuirChevelugras', visibleUX: 1, isUsed: 0, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q02R06', questionLabel: 'As-tu des problèmes avec ton cuir chevelu ?', response: 'Chute de cheveux', responseLabel: 'qCuirCheveluchuteCheveux', visibleUX: 1, isUsed: 1, P001: 1, P002: 0, P003: 0, P004: 0, P005: 0, P006: 1, P007: 0, P008: 0, P009: 0, P010: 0, P011: 1, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q02R07', questionLabel: 'As-tu des problèmes avec ton cuir chevelu ?', response: 'Tempes dégarnies', responseLabel: 'qCuirChevelutempesDegarnies', visibleUX: 1, isUsed: 1, P001: 1, P002: 0, P003: 0, P004: 0, P005: 0, P006: 1, P007: 0, P008: 0, P009: 0, P010: 0, P011: 1, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q02R08', questionLabel: 'As-tu des problèmes avec ton cuir chevelu ?', response: 'Pelades', responseLabel: 'qCuirChevelupelades', visibleUX: 1, isUsed: 1, P001: 1, P002: 0, P003: 0, P004: 0, P005: 0, P006: 1, P007: 0, P008: 0, P009: 0, P010: 0, P011: 1, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q02R09', questionLabel: 'As-tu des problèmes avec ton cuir chevelu ?', response: 'Pas disponible sur le questionnaire Webflow', responseLabel: 'qCuirChevelusain:OptionARajouterAuQuestionnaire', visibleUX: 0, isUsed: 0, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            
+            // Q03 - Longueurs
+            {code: 'Q03R01', questionLabel: 'As-tu des problèmes avec tes longueurs ?', response: 'Terne (manque de brillance)', responseLabel: 'qEtatLongueursterne', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 1, P004: 1, P005: 0, P006: 0, P007: 0, P008: 1, P009: 1, P010: 0, P011: 0, P012: 0, P013: 1, P014: 1, P015: 0},
+            {code: 'Q03R02', questionLabel: 'As-tu des problèmes avec tes longueurs ?', response: 'Très sec', responseLabel: 'qEtatLongueurstresSec', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 1, P004: 1, P005: 0, P006: 0, P007: 0, P008: 1, P009: 1, P010: 0, P011: 0, P012: 0, P013: 1, P014: 1, P015: 0},
+            {code: 'Q03R03', questionLabel: 'As-tu des problèmes avec tes longueurs ?', response: 'Les pointes cassantes', responseLabel: 'qEtatLongueurscassant', visibleUX: 1, isUsed: 1, P001: 1, P002: 0, P003: 0, P004: 1, P005: 0, P006: 1, P007: 0, P008: 0, P009: 1, P010: 0, P011: 1, P012: 0, P013: 0, P014: 1, P015: 0},
+            {code: 'Q03R04', questionLabel: 'As-tu des problèmes avec tes longueurs ?', response: 'Cheveux fourchus', responseLabel: 'qEtatLongueursfourchu', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 1, P004: 0, P005: 0, P006: 0, P007: 0, P008: 1, P009: 0, P010: 0, P011: 0, P012: 0, P013: 1, P014: 0, P015: 0},
+            {code: 'Q03R05', questionLabel: 'As-tu des problèmes avec tes longueurs ?', response: 'Manque de définition', responseLabel: 'qEtatLongueursmanqueDefinition', visibleUX: 1, isUsed: 0, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            
+            // Q04 - Chaleur
+            {code: 'Q04R01', questionLabel: 'As-tu souvent recours à la chaleur ?', response: 'Oui, très souvent (chaque semaine)', responseLabel: 'qChaleurtresSouvent', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 1, P005: 0, P006: 0, P007: 0, P008: 0, P009: 1, P010: 0, P011: 0, P012: 0, P013: 0, P014: 1, P015: 0},
+            {code: 'Q04R02', questionLabel: 'As-tu souvent recours à la chaleur ?', response: 'De temps en temps (tous les mois ou presque)', responseLabel: 'qChaleurdeTempsEnTemps', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 1, P005: 0, P006: 0, P007: 0, P008: 0, P009: 1, P010: 0, P011: 0, P012: 0, P013: 0, P014: 1, P015: 0},
+            {code: 'Q04R03', questionLabel: 'As-tu souvent recours à la chaleur ?', response: 'Jamais ou rarement (quelques fois par an)', responseLabel: 'qChaleurrarement', visibleUX: 1, isUsed: 0, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            
+            // Q05 - Traitements
+            {code: 'Q05R01', questionLabel: 'As-tu les cheveux...', response: 'Naturel', responseLabel: 'qEtatCheveunaturel', visibleUX: 1, isUsed: 0, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q05R02', questionLabel: 'As-tu les cheveux...', response: 'Colorés', responseLabel: 'qEtatCheveucolores', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 1, P005: 0, P006: 0, P007: 0, P008: 0, P009: 1, P010: 0, P011: 0, P012: 0, P013: 0, P014: 1, P015: 0},
+            {code: 'Q05R03', questionLabel: 'As-tu les cheveux...', response: 'Avec des mèches', responseLabel: 'qEtatCheveuavecMeches', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 1, P005: 0, P006: 0, P007: 0, P008: 0, P009: 1, P010: 0, P011: 0, P012: 0, P013: 0, P014: 1, P015: 0},
+            {code: 'Q05R04', questionLabel: 'As-tu les cheveux...', response: 'Défrisés', responseLabel: 'qEtatCheveudefrises', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 1, P005: 0, P006: 0, P007: 0, P008: 0, P009: 1, P010: 0, P011: 0, P012: 0, P013: 0, P014: 1, P015: 0},
+            {code: 'Q05R05', questionLabel: 'As-tu les cheveux...', response: 'Permanente', responseLabel: 'qEtatCheveupermanente', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 0, P004: 1, P005: 0, P006: 0, P007: 0, P008: 0, P009: 1, P010: 0, P011: 0, P012: 0, P013: 0, P014: 1, P015: 0},
+            
+            // Q06 - Objectifs
+            {code: 'Q06R01', questionLabel: 'Quels sont tes objectifs ?', response: 'Faire pousser', responseLabel: 'qObjectifpousse', visibleUX: 1, isUsed: 1, P001: 1, P002: 0, P003: 0, P004: 0, P005: 0, P006: 1, P007: 0, P008: 0, P009: 0, P010: 0, P011: 1, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q06R02', questionLabel: 'Quels sont tes objectifs ?', response: 'Retenir mes longueurs', responseLabel: 'qObjectifretenirLongeur:ARetirerDuQuestionnaire', visibleUX: 1, isUsed: 0, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q06R03', questionLabel: 'Quels sont tes objectifs ?', response: 'Fortifier et densifier', responseLabel: 'qObjectiffortifierDensifier', visibleUX: 1, isUsed: 1, P001: 0, P002: 0, P003: 1, P004: 1, P005: 0, P006: 0, P007: 0, P008: 1, P009: 1, P010: 0, P011: 0, P012: 0, P013: 1, P014: 1, P015: 0},
+            {code: 'Q06R04', questionLabel: 'Quels sont tes objectifs ?', response: 'Cesser la chute de cheveux', responseLabel: 'qObjectifstopChute', visibleUX: 1, isUsed: 1, P001: 1, P002: 0, P003: 0, P004: 0, P005: 0, P006: 1, P007: 0, P008: 0, P009: 0, P010: 0, P011: 1, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q06R05', questionLabel: 'Quels sont tes objectifs ?', response: 'Pas disponible sur le questionnaire Webflow', responseLabel: 'qObjectifcuirCheveluSain', visibleUX: 0, isUsed: 1, P001: 0, P002: 1, P003: 0, P004: 0, P005: 1, P006: 0, P007: 1, P008: 0, P009: 0, P010: 1, P011: 0, P012: 1, P013: 0, P014: 0, P015: 1},
+            {code: 'Q06R06', questionLabel: 'Quels sont tes objectifs ?', response: 'Définir mes boucles', responseLabel: 'qObjectifdefinitionDeBoucles', visibleUX: 1, isUsed: 0, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0},
+            {code: 'Q06R07', questionLabel: 'Quels sont tes objectifs ?', response: 'Augmenter la brillance', responseLabel: 'qObjectifbrilliance:OptionARajouterDansLeQuestionnaire', visibleUX: 1, isUsed: 0, P001: 0, P002: 0, P003: 0, P004: 0, P005: 0, P006: 0, P007: 0, P008: 0, P009: 0, P010: 0, P011: 0, P012: 0, P013: 0, P014: 0, P015: 0}
+        ];
+
+        // Mapping texture + volume vers codes Q01
+        const textureVolumeMapping = {
+            'ondules-beaucoup': 'Q01R01',
+            'ondules-moyen': 'Q01R02', 
+            'ondules-peu': 'Q01R03',
+            'boucles-beaucoup': 'Q01R04',
+            'boucles-moyen': 'Q01R05',
+            'boucles-peu': 'Q01R06',
+            'frises-beaucoup': 'Q01R07',
+            'frises-moyen': 'Q01R08',
+            'frises-peu': 'Q01R09',
+            'afro-beaucoup': 'Q01R10',
+            'afro-moyen': 'Q01R11',
+            'afro-peu': 'Q01R12'
+        };
+
+        // Liste des 15 packs
+        const packNames = {
+            'P001': 'Pack Afro + Pousse + Anti-chute',
+            'P002': 'Pack Afro + Assainissant + Démangeaisons', 
+            'P003': 'Pack Afro + Nourrissant',
+            'P004': 'Pack Afro + Protéines',
+            'P005': 'Pack Afro + Pellicules',
+            'P006': 'Pack Frisé + Pousse + Anti-chute',
+            'P007': 'Pack Frisé + Assainissant + Démangeaisons',
+            'P008': 'Pack Frisé + Nourrissant',
+            'P009': 'Pack Frisé + Protéines',
+            'P010': 'Pack Frisé + Pellicules',
+            'P011': 'Pack Bouclé/Ondulé + Pousse + Anti-chute',
+            'P012': 'Pack Bouclé/Ondulé + Assainissant + Démangeaisons',
+            'P013': 'Pack Bouclé/Ondulé + Nourrissant',
+            'P014': 'Pack Bouclé/Ondulé + Protéines',
+            'P015': 'Pack Bouclé/Ondulé + Pellicules'
+        };
+
+        // Mapping des réponses vers codes (synchronisé avec CSV officiel v1.0.0)
+        const responseMapping = {
+            // Cuir chevelu (Q02)
+            'sec': 'Q02R01',
+            'sensible': 'Q02R02',
+            'pellicules': 'Q02R03',
+            'demangeaisons': 'Q02R04',
+            'gras': 'Q02R05',
+            'chute': 'Q02R06',
+            'tempes': 'Q02R07',
+            'pelades': 'Q02R08',
+            // Longueurs (Q03)
+            'terne': 'Q03R01',
+            'cassantes': 'Q03R03',
+            'fourchus': 'Q03R04',
+            'definition': 'Q03R05',
+            // Chaleur (Q04)
+            'souvent': 'Q04R01',
+            'parfois': 'Q04R02',
+            'jamais': 'Q04R03',
+            // Traitements (Q05)
+            'naturel': 'Q05R01',
+            'colores': 'Q05R02',
+            'meches': 'Q05R03',
+            'defrises': 'Q05R04',
+            'permanente': 'Q05R05',
+            // Objectifs (Q06)
+            'pousser': 'Q06R01',
+            'retenir': 'Q06R02',
+            'fortifier': 'Q06R03',
+            'cesser': 'Q06R04',
+            'definir': 'Q06R06',
+            'brillance': 'Q06R07'
+        };
+
+        // Fonctions utilitaires
+        function toggleSection(element) {
+            const section = element.parentElement;
+            section.classList.toggle('collapsed');
+        }
+
+        function selectRadio(name, value) {
+            // Désélectionner tous les radios du même groupe
+            document.querySelectorAll(`input[name="${name}"]`).forEach(radio => {
+                radio.closest('.radio-option').classList.remove('selected');
+                radio.checked = false;
+            });
+            
+            // Sélectionner le radio cliqué
+            const radio = document.getElementById(`${name}-${value}`);
+            if (radio) {
+                radio.checked = true;
+                radio.closest('.radio-option').classList.add('selected');
+            }
+            
+            if (document.getElementById('useLocalStorage').checked) {
+                saveToLocalStorage();
+            }
+            
+            validateForm();
+        }
+
+        function toggleCheckbox(id) {
+            const checkbox = document.getElementById(id);
+            const option = checkbox.closest('.checkbox-option');
+            
+            checkbox.checked = !checkbox.checked;
+            option.classList.toggle('selected', checkbox.checked);
+            
+            if (document.getElementById('useLocalStorage').checked) {
+                saveToLocalStorage();
+            }
+            
+            validateForm();
+        }
+
+        function validateForm() {
+            const isValid = 
+                document.querySelector('input[name="texture"]:checked') && // Texture obligatoire
+                document.querySelector('input[name="volume"]:checked') && // Volume obligatoire
+                (document.querySelectorAll('#diagnosticForm input[type="checkbox"]:checked').length > 0 || // Au moins une checkbox
+                 document.querySelector('input[name="chaleur"]:checked')); // Ou chaleur sélectionnée
+
+            const btn = document.getElementById('calculateBtn');
+            const msg = document.getElementById('validationMessage');
+            
+            if (isValid) {
+                btn.disabled = false;
+                msg.style.display = 'none';
+            } else {
+                btn.disabled = true;
+                msg.style.display = 'block';
+            }
+        }
+
+        function generateRandomResponses() {
+            resetForm();
+            
+            // Sélection aléatoire texture
+            const textures = ['ondules', 'boucles', 'frises', 'afro'];
+            const randomTexture = textures[Math.floor(Math.random() * textures.length)];
+            selectRadio('texture', randomTexture);
+            
+            // Sélection aléatoire volume
+            const volumes = ['peu', 'moyen', 'beaucoup'];
+            const randomVolume = volumes[Math.floor(Math.random() * volumes.length)];
+            selectRadio('volume', randomVolume);
+            
+            // Sélection aléatoire cuir chevelu (1-3 options)
+            const cuirOptions = ['cuir-sec', 'cuir-gras', 'cuir-sensible', 'cuir-pellicules', 'cuir-demangeaisons', 'cuir-chute', 'cuir-tempes', 'cuir-pelades'];
+            const nbCuirOptions = Math.floor(Math.random() * 3) + 1; // 1 à 3 options
+            const selectedCuir = cuirOptions.sort(() => 0.5 - Math.random()).slice(0, nbCuirOptions);
+            selectedCuir.forEach(id => toggleCheckbox(id));
+            
+            // Sélection aléatoire longueurs (0-2 options)
+            const longOptions = ['long-terne', 'long-sec', 'long-cassantes', 'long-fourchus', 'long-definition'];
+            const nbLongOptions = Math.floor(Math.random() * 3); // 0 à 2 options
+            const selectedLong = longOptions.sort(() => 0.5 - Math.random()).slice(0, nbLongOptions);
+            selectedLong.forEach(id => toggleCheckbox(id));
+            
+            // Sélection aléatoire chaleur
+            const chaleurs = ['jamais', 'parfois', 'souvent'];
+            const randomChaleur = chaleurs[Math.floor(Math.random() * chaleurs.length)];
+            selectRadio('chaleur', randomChaleur);
+            
+            // Sélection aléatoire traitements (0-2 options)
+            const traitOptions = ['trait-colores', 'trait-meches', 'trait-defrises', 'trait-permanente'];
+            const nbTraitOptions = Math.floor(Math.random() * 3); // 0 à 2 options
+            const selectedTrait = traitOptions.sort(() => 0.5 - Math.random()).slice(0, nbTraitOptions);
+            selectedTrait.forEach(id => toggleCheckbox(id));
+            
+            // Sélection aléatoire objectifs (1-3 options)
+            const objOptions = ['obj-pousser', 'obj-fortifier', 'obj-retenir', 'obj-cesser', 'obj-brillance', 'obj-definir'];
+            const nbObjOptions = Math.floor(Math.random() * 3) + 1; // 1 à 3 options
+            const selectedObj = objOptions.sort(() => 0.5 - Math.random()).slice(0, nbObjOptions);
+            selectedObj.forEach(id => toggleCheckbox(id));
+            
+            document.getElementById('results').innerHTML = '<div class="success">Réponses aléatoires générées ! Vous pouvez maintenant calculer la recommandation.</div>';
+        }
+
+        function resetForm() {
+            document.getElementById('diagnosticForm').reset();
+            document.querySelectorAll('.radio-option, .checkbox-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.getElementById('results').innerHTML = '<p>Complétez le diagnostic et cliquez sur "Calculer la recommandation" pour voir les résultats.</p>';
+            
+            if (document.getElementById('useLocalStorage').checked) {
+                localStorage.removeItem('evandra-responses');
+            }
+            
+            validateForm();
+        }
+
+        function getActiveResponseLabels() {
+            const responseLabels = [];
+            
+            // Texture + Volume
+            const texture = document.querySelector('input[name="texture"]:checked')?.value;
+            const volume = document.querySelector('input[name="volume"]:checked')?.value;
+            
+            if (texture && volume) {
+                const key = `${texture}-${volume}`;
+                const code = textureVolumeMapping[key];
+                if (code) {
+                    const rule = matrixData.find(r => r.code === code);
+                    if (rule && rule.isUsed === 1) {
+                        responseLabels.push(rule.responseLabel);
+                    }
+                }
+            }
+
+            // Autres réponses (checkboxes et radio chaleur)
+            document.querySelectorAll('#diagnosticForm input[type="checkbox"]:checked, input[name="chaleur"]:checked').forEach(input => {
+                const value = input.value;
+                let mappedCode = responseMapping[value];
+                
+                // Gestion spéciale pour "sec" des longueurs
+                if (value === 'sec' && input.id === 'long-sec') {
+                    mappedCode = 'Q03R02';
+                }
+                
+                if (mappedCode) {
+                    const rule = matrixData.find(r => r.code === mappedCode);
+                    if (rule && rule.isUsed === 1) {
+                        responseLabels.push(rule.responseLabel);
+                    }
+                }
+            });
+
+            return responseLabels;
+        }
+
+        function calculateRecommendation() {
+            const activeResponseLabels = getActiveResponseLabels();
+            
+            if (activeResponseLabels.length === 0) {
+                document.getElementById('results').innerHTML = '<div class="warning">⚠️ Veuillez sélectionner au moins une réponse.</div>';
+                return;
+            }
+
+            // Calculer les scores en utilisant responseLabel comme identifiant
+            const scores = {};
+            const contributions = {};
+            
+            // Initialiser les scores
+            Object.keys(packNames).forEach(pack => {
+                scores[pack] = 0;
+                contributions[pack] = [];
+            });
+
+            // Calculer les contributions en utilisant responseLabel
+            activeResponseLabels.forEach(responseLabel => {
+                const row = matrixData.find(r => r.responseLabel === responseLabel);
+                if (row && row.isUsed === 1) {
+                    Object.keys(packNames).forEach(pack => {
+                        if (row[pack] === 1) {
+                            scores[pack]++;
+                            contributions[pack].push(row.response || row.responseLabel);
+                        }
+                    });
+                } else {
+                    console.warn(`ResponseLabel ${responseLabel} non trouvé dans la MatrixSource ou règle non utilisée`);
+                }
+            });
+
+            displayResults(scores, contributions, activeResponseLabels);
+            
+            if (document.getElementById('useLocalStorage').checked) {
+                saveToLocalStorage();
+            }
+        }
+
+        function displayResults(scores, contributions, activeResponseLabels) {
+            // Trier les packs par score
+            const sortedPacks = Object.entries(scores)
+                .sort(([,a], [,b]) => b - a)
+                .filter(([,score]) => score > 0);
+
+            if (sortedPacks.length === 0) {
+                document.getElementById('results').innerHTML = '<div class="warning">⚠️ Aucun pack recommandé avec cette configuration.</div>';
+                return;
+            }
+
+            const maxScore = sortedPacks[0][1];
+            const winners = sortedPacks.filter(([,score]) => score === maxScore);
+
+            let html = '<div class="results-section">';
+            
+            // Pack(s) recommandé(s)
+            if (winners.length === 1) {
+                const [packCode, score] = winners[0];
+                html += `
+                    <div class="recommended-pack">
+                        <h4>🏆 Pack Recommandé</h4>
+                        <div><strong>${packNames[packCode]}</strong></div>
+                        <div>Score: ${score} points</div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="ex-aequo">
+                        <h4>🤝 Packs Ex-æquo (${winners.length} packs)</h4>
+                        ${winners.map(([code, score]) => 
+                            `<div><strong>${packNames[code]}</strong> - ${score} points</div>`
+                        ).join('')}
+                    </div>
+                `;
+            }
+
+            // Tableau des scores
+            html += '<h3>📊 Scores par pack</h3>';
+            html += '<table class="scores-table">';
+            html += '<tr><th>Pack</th><th>Score</th></tr>';
+            
+            sortedPacks.forEach(([packCode, score]) => {
+                html += `<tr><td>${packNames[packCode]}</td><td>${score}</td></tr>`;
+            });
+            html += '</table>';
+
+            // Contributions détaillées
+            html += '<div class="contributions">';
+            html += '<h4>🔍 Contributions détaillées</h4>';
+            
+            winners.forEach(([packCode]) => {
+                if (contributions[packCode].length > 0) {
+                    html += `<div><strong>${packNames[packCode]}:</strong></div>`;
+                    contributions[packCode].forEach(contrib => {
+                        html += `<div class="contribution-item">• ${contrib} → +1 point</div>`;
+                    });
+                }
+            });
+            html += '</div>';
+
+            // ResponseLabels activés (pour debug)
+            html += '<div style="margin-top: 15px; font-size: 12px; color: #666;">';
+            html += `<strong>ResponseLabels activés:</strong> ${activeResponseLabels.join(', ')}`;
+            html += '</div>';
+
+            html += '</div>';
+            
+            document.getElementById('results').innerHTML = html;
+        }
+
+        function exportResponses() {
+            const activeResponseLabels = getActiveResponseLabels();
+            
+            // Calculer les résultats de recommandation
+            const scores = {};
+            const contributions = {};
+            
+            // Initialiser les scores
+            Object.keys(packNames).forEach(pack => {
+                scores[pack] = 0;
+                contributions[pack] = [];
+            });
+
+            // Calculer les contributions
+            activeResponseLabels.forEach(responseLabel => {
+                const row = matrixData.find(r => r.responseLabel === responseLabel);
+                if (row && row.isUsed === 1) {
+                    Object.keys(packNames).forEach(pack => {
+                        if (row[pack] === 1) {
+                            scores[pack]++;
+                            contributions[pack].push({
+                                rule: row.response || row.responseLabel,
+                                responseLabel: responseLabel
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Trier les packs par score
+            const sortedPacks = Object.entries(scores)
+                .sort(([,a], [,b]) => b - a)
+                .filter(([,score]) => score > 0);
+
+            const maxScore = sortedPacks.length > 0 ? sortedPacks[0][1] : 0;
+            const winners = sortedPacks.filter(([,score]) => score === maxScore);
+
+            const exportData = {
+                // Métadonnées
+                timestamp: new Date().toISOString(),
+                matrixVersion: "v1.0.0",
+                
+                // Réponses du questionnaire
+                responses: {
+                    texture: document.querySelector('input[name="texture"]:checked')?.value,
+                    volume: document.querySelector('input[name="volume"]:checked')?.value,
+                    cuirChevelu: Array.from(document.querySelectorAll('#diagnosticForm input[type="checkbox"]:checked'))
+                        .filter(cb => cb.id.startsWith('cuir-'))
+                        .map(cb => cb.value),
+                    longueurs: Array.from(document.querySelectorAll('#diagnosticForm input[type="checkbox"]:checked'))
+                        .filter(cb => cb.id.startsWith('long-'))
+                        .map(cb => cb.value),
+                    chaleur: document.querySelector('input[name="chaleur"]:checked')?.value,
+                    traitements: Array.from(document.querySelectorAll('#diagnosticForm input[type="checkbox"]:checked'))
+                        .filter(cb => cb.id.startsWith('trait-'))
+                        .map(cb => cb.value),
+                    objectifs: Array.from(document.querySelectorAll('#diagnosticForm input[type="checkbox"]:checked'))
+                        .filter(cb => cb.id.startsWith('obj-'))
+                        .map(cb => cb.value)
+                },
+                
+                // ResponseLabels activés
+                activeResponseLabels: activeResponseLabels,
+                
+                // Résultats de la recommandation
+                recommendation: {
+                    // Pack(s) recommandé(s)
+                    recommendedPacks: winners.map(([code, score]) => ({
+                        packCode: code,
+                        packName: packNames[code],
+                        score: score,
+                        isWinner: true
+                    })),
+                    
+                    // Tous les scores (classés par ordre décroissant)
+                    allScores: sortedPacks.map(([code, score]) => ({
+                        packCode: code,
+                        packName: packNames[code],
+                        score: score,
+                        rank: sortedPacks.findIndex(([c]) => c === code) + 1
+                    })),
+                    
+                    // Contributions détaillées pour les packs gagnants
+                    contributions: Object.fromEntries(
+                        winners.map(([packCode]) => [
+                            packCode,
+                            {
+                                packName: packNames[packCode],
+                                rules: contributions[packCode]
+                            }
+                        ])
+                    ),
+                    
+                    // Statistiques
+                    stats: {
+                        totalActiveResponseLabels: activeResponseLabels.length,
+                        totalPacksWithScore: sortedPacks.length,
+                        maxScore: maxScore,
+                        winnersCount: winners.length,
+                        isExAequo: winners.length > 1
+                    }
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `evandra-complete-v1.0.0-${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function saveToLocalStorage() {
+            if (!document.getElementById('useLocalStorage').checked) return;
+            
+            const formData = {
+                texture: document.querySelector('input[name="texture"]:checked')?.value,
+                volume: document.querySelector('input[name="volume"]:checked')?.value,
+                cuirChevelu: Array.from(document.querySelectorAll('#diagnosticForm input[type="checkbox"]:checked'))
+                    .filter(cb => cb.id.startsWith('cuir-')).map(cb => cb.id),
+                longueurs: Array.from(document.querySelectorAll('#diagnosticForm input[type="checkbox"]:checked'))
+                    .filter(cb => cb.id.startsWith('long-')).map(cb => cb.id),
+                chaleur: document.querySelector('input[name="chaleur"]:checked')?.value,
+                traitements: Array.from(document.querySelectorAll('#diagnosticForm input[type="checkbox"]:checked'))
+                    .filter(cb => cb.id.startsWith('trait-')).map(cb => cb.id),
+                objectifs: Array.from(document.querySelectorAll('#diagnosticForm input[type="checkbox"]:checked'))
+                    .filter(cb => cb.id.startsWith('obj-')).map(cb => cb.id)
+            };
+            
+            localStorage.setItem('evandra-responses', JSON.stringify(formData));
+        }
+
+        function loadFromLocalStorage() {
+            if (!document.getElementById('useLocalStorage').checked) return;
+            
+            const saved = localStorage.getItem('evandra-responses');
+            if (!saved) return;
+            
+            try {
+                const data = JSON.parse(saved);
+                
+                if (data.texture) selectRadio('texture', data.texture);
+                if (data.volume) selectRadio('volume', data.volume);
+                if (data.chaleur) selectRadio('chaleur', data.chaleur);
+                
+                [...(data.cuirChevelu || []), ...(data.longueurs || []), 
+                 ...(data.traitements || []), ...(data.objectifs || [])].forEach(id => {
+                    const checkbox = document.getElementById(id);
+                    if (checkbox && !checkbox.checked) {
+                        toggleCheckbox(id);
+                    }
+                });
+            } catch (error) {
+                console.error('Erreur lors du chargement des données:', error);
+            }
+            
+            validateForm();
+        }
+
+        function toggleLocalStorage() {
+            if (document.getElementById('useLocalStorage').checked) {
+                loadFromLocalStorage();
+            } else {
+                localStorage.removeItem('evandra-responses');
+            }
+        }
+
+        // Fonctions CSV (pour compatibilité)
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    parseCSV(e.target.result);
+                    document.getElementById('results').innerHTML = '<div class="success">✅ MatrixSource importée avec succès ! ' + matrixData.length + ' lignes chargées.</div>';
+                } catch (error) {
+                    document.getElementById('results').innerHTML = '<div class="warning">⚠️ Erreur lors du parsing du CSV : ' + error.message + '</div>';
+                }
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const headers = lines[0].split(';').map(h => h.trim().replace(/"/g, ''));
+            
+            matrixData = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                const values = lines[i].split(';').map(v => v.trim().replace(/"/g, ''));
+                const row = {};
+                
+                headers.forEach((header, index) => {
+                    if (header === 'responseCode') {
+                        row.code = values[index];
+                    } else if (header === 'Question') {
+                        row.questionLabel = values[index];
+                    } else if (header === 'Réponse' || header === 'Response') {
+                        row.response = values[index];
+                    } else if (header === 'responseLabel') {
+                        row.responseLabel = values[index];
+                    } else if (header === 'VisibleUX') {
+                        row.visibleUX = parseInt(values[index]) || 0;
+                    } else if (header === 'IsUsed') {
+                        row.isUsed = parseInt(values[index]) || 0;
+                    } else if (header.startsWith('P0')) {
+                        const packCode = header.substring(0, 4);
+                        row[packCode] = parseInt(values[index]) || 0;
+                    }
+                });
+                
+                if (row.code) {
+                    matrixData.push(row);
+                }
+            }
+        }
+
+        // Initialisation au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFromLocalStorage();
+        });
+    </script>
+</body>
+</html>
